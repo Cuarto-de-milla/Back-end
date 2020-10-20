@@ -1,15 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-# Create your models here.
-
-
 
 class Stations(models.Model):
     name = models.CharField(max_length=200)
     latitude = models.FloatField(max_length=9)
     longitude = models.FloatField(max_length=9)
 
+    register = models.CharField(max_length=64)
     active = models.BooleanField(default=True)
     status = models.CharField(max_length=10,default='ghost')
 
@@ -26,17 +24,13 @@ class Prices(models.Model):
     diesel_price = models.FloatField(max_length=5)
 
     def __str__(self):
-        return f'{self.magna_price} cuesta la magna en {self.station_id}'
-"""
-class GasTypes(models.Model):
-    stations = models.ForeignKey(Stations, on_delete=models.PROTECT)
-    prices = models.ForeignKey(Prices, on_delete=models.PROTECT)
+        return f"""{self.magna_price} cuesta la magna en {self.station_id}
+                {self.premium_price} cuesta la premium en {self.station_id}
+                {self.diesel_price} cuesta el diesel en {self.station_id}
+        """
 
-    gasType = models.CharField(max_length=25)
 
-    def __str__(self):
-        return self.gasType
-"""        
+
 class Users(models.Model):
     user = models.OneToOneField(User, on_delete=models.PROTECT)
 
@@ -54,7 +48,16 @@ class Complaints(models.Model):
     def __str__(self):
         return f'{self.user_id} en {self.date}'
 
+"""
+class GasTypes(models.Model):
+    stations = models.ForeignKey(Stations, on_delete=models.PROTECT)
+    prices = models.ForeignKey(Prices, on_delete=models.PROTECT)
 
+    gasType = models.CharField(max_length=25)
+
+    def __str__(self):
+        return self.gasType
+"""     
 
 
     
