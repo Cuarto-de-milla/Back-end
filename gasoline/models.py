@@ -19,7 +19,10 @@ class Stations(models.Model):
         blank=True,
         null=True
         )
-
+    register = models,.CharField(
+        max_length=64,
+        unique=True,
+        help_text='Unique Register given for the Mexican Govenment')
     # Location
     latitude = models.FloatField(max_length=9)
     longitude = models.FloatField(max_length=9)
