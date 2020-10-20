@@ -6,12 +6,29 @@ from django.contrib.auth.models import User
 
 class Stations(models.Model):
     """ Stations Model"""
+    # Information
     name = models.CharField(max_length=200)
-    
+    about = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        help_text='Short description of the station'
+        ) 
+    picture = models.ImageField(
+        upload_to=None,
+        blank=True,
+        null=True
+        )
+
     # Location
     latitude = models.FloatField(max_length=9)
     longitude = models.FloatField(max_length=9)
-    
+    city = models.CharField(max_length=50)
+    state = models.CharField(
+        max_length=50
+        help_text='Oficial name of the Mexican state where is located the station'
+        )
+
     # Status
     is_active = models.BooleanField(default=True)
     status = models.CharField(
@@ -24,44 +41,38 @@ class Stations(models.Model):
         """Return station name"""
         return self.name
 
+
 class Prices(models.Model):
     """ Prices Model
 
-    Model that holds the prices of each type of gasoline by station.
+    Model that holds the prices of one type of gasoline by station.
     """
     station = models.ForeignKey(Stations, on_delete=models.PROTECT)
 
+    GAS_CHOICES = [
+        ('PR':'Premium'),
+        ('MG':'Magna'),
+        ('DS':'Diesel')
+    ]
+    gas_type = models.CharField(
+        GasTypes, 
+        on_delete=models.PROTECT,
+        choices=GAS_CHOISES,
+        help_text='Type of gasoline beetwetn the GAS_CHOICES',
+        )
+    price = models.FloatField(
+        max_length=5,
+        )
     date = models.DateTimeField(
         'created at',
         auto_now=True
         help_text='Date Time on wich the prices are registred'
         )
-    magna_price = models.FloatField(
-        max_length=5,
-        null=True
-        )
-    premium_price = models.FloatField(
-        max_length=5,
-        null=True
-        )
-    diesel_price = models.FloatField(
-        max_length=5,
-        null=True
-        )
-
     def __str__(self):
-        """ Returns price of magna."""
-        return f'{self.magna_price} cuesta la magna en {self.station}'
-"""
-class GasTypes(models.Model):
-    stations = models.ForeignKey(Stations, on_delete=models.PROTECT)
-    prices = models.ForeignKey(Prices, on_delete=models.PROTECT)
+        """ Returns price."""
+        return f'{self.gas_type} cuesta {self.price} en {self.station}'
 
-    gasType = models.CharField(max_length=25)
 
-    def __str__(self):
-        return self.gasType
-"""        
 class Profile(models.Model):
     """Profile Model 
     
@@ -74,6 +85,7 @@ class Profile(models.Model):
         """Returns string representation of user"""
         return self
 
+
 class Complaints(models.Model):
     """Complaints Model
 
@@ -84,9 +96,10 @@ class Complaints(models.Model):
         Users, 
         on_delete=models.PROTECT
     )
-    date = models.DateTimeField(
-        auto_now_add=True,
-        help_text='Datetime when the complaint is created')
+    station = models.ForeignKey(
+        Stations,
+        on_delete=models.CASCADE
+        )
     description = models.TextField(
         max_length=500,
         null=False,
@@ -94,8 +107,28 @@ class Complaints(models.Model):
     link_evidence = models.CharField(max_length=255)
     type_complaint = models.CharField(max_length=255)
 
+    date = models.DateTimeField(
+        auto_now_add=True,
+        help_text='Datetime when the complaint is created'
+        )
+
+    # Prices
+    actual_price = models.ForeignKey(
+        Prices, 
+        on_delete=models.PROTECT,
+        help_text='Price registered in the system when creating the complaint'
+        )
+    offered_price = models.FloatField(
+        max_length=5,
+        help_text='Price published in the station'
+        )
+
     def __str__(self):
-        """ Returns usern and datetime of the complaint."""
-        return f'{self.user} en {self.date}'
+        """ Returns user and datetime of the complaint."""
+        return '{}: Actual price {}, offered_price {}'.format(
+                self.user,
+                self.actual_price,
+                self.offered_price,
+                )
 
 
