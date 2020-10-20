@@ -19,7 +19,7 @@ class Stations(models.Model):
         blank=True,
         null=True
         )
-    register = models,.CharField(
+    register = models.CharField(
         max_length=64,
         unique=True,
         help_text='Unique Register given for the Mexican Govenment')
@@ -28,7 +28,7 @@ class Stations(models.Model):
     longitude = models.FloatField(max_length=9)
     city = models.CharField(max_length=50)
     state = models.CharField(
-        max_length=50
+        max_length=50,
         help_text='Oficial name of the Mexican state where is located the station'
         )
 
@@ -53,14 +53,13 @@ class Prices(models.Model):
     station = models.ForeignKey(Stations, on_delete=models.PROTECT)
 
     GAS_CHOICES = [
-        ('PR':'Premium'),
-        ('MG':'Magna'),
-        ('DS':'Diesel')
+        ('PR','Premium'),
+        ('MG','Magna'),
+        ('DS','Diesel')
     ]
     gas_type = models.CharField(
-        GasTypes, 
-        on_delete=models.PROTECT,
-        choices=GAS_CHOISES,
+        max_length=20,
+        choices=GAS_CHOICES,
         help_text='Type of gasoline beetwetn the GAS_CHOICES',
         )
     price = models.FloatField(
@@ -68,7 +67,7 @@ class Prices(models.Model):
         )
     date = models.DateTimeField(
         'created at',
-        auto_now=True
+        auto_now=True,
         help_text='Date Time on wich the prices are registred'
         )
     def __str__(self):
@@ -96,7 +95,7 @@ class Complaints(models.Model):
     about the prices in a special station.
     """
     user = models.ForeignKey(
-        Users, 
+        User, 
         on_delete=models.PROTECT
     )
     station = models.ForeignKey(
