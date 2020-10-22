@@ -26,10 +26,10 @@ class Stations(models.Model):
     # Location
     latitude = models.FloatField(max_length=9)
     longitude = models.FloatField(max_length=9)
-    city = models.CharField(max_length=50)
+    #city = models.CharField(max_length=50)
     state = models.CharField(
         max_length=50,
-        help_text='Oficial name of the Mexican state where is located the station'
+        help_text='Official name of the Mexican state where is located the station'
         )
 
     # Status
@@ -60,7 +60,7 @@ class Prices(models.Model):
     gas_type = models.CharField(
         max_length=20,
         choices=GAS_CHOICES,
-        help_text='Type of gasoline beetwetn the GAS_CHOICES',
+        help_text='Type of gasoline between the GAS_CHOICES',
         )
     price = models.FloatField(
         max_length=5,
@@ -91,7 +91,7 @@ class Profile(models.Model):
 class Complaints(models.Model):
     """Complaints Model
 
-    A complaint is a bad calification that an user makes 
+    A complaint is a bad score that an user makes 
     about the prices in a special station.
     """
     user = models.ForeignKey(
