@@ -24,7 +24,7 @@ SECRET_KEY = env.str('SECRET_KEY')
 # Debug  variable
 DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [ '*']
 
 # Application definition
 DJANGO_APPS = [
