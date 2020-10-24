@@ -15,6 +15,9 @@ Django==3.1.2
 django-filter==2.4.0
 dj-database-url==0.5.0
 
+# Deploy
+django-heroku==0.3.1
+
 # Environment
 django-environ==0.4.5
 
