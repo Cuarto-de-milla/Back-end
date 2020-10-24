@@ -4,10 +4,13 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-class Stations(models.Model):
-    """ Stations Model"""
+class Station(models.Model):
+    """ Station Model"""
     # Information
-    name = models.CharField(max_length=200)
+    name = models.CharField(
+        max_length=200,
+        unique=True
+    )
     about = models.CharField(
         max_length=200,
         blank=True,
@@ -23,17 +26,18 @@ class Stations(models.Model):
         max_length=64,
         unique=True,
         help_text='Unique Register given for the Mexican Govenment')
+    
     # Location
     latitude = models.FloatField(max_length=9)
     longitude = models.FloatField(max_length=9)
-    #city = models.CharField(max_length=50)
+    town = models.CharField(max_length=50)
     state = models.CharField(
         max_length=50,
         help_text='Official name of the Mexican state where is located the station'
         )
 
     # Status
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     status = models.CharField(
         max_length=10,
         default='ghost',
@@ -45,8 +49,8 @@ class Stations(models.Model):
         return self.name
 
 
-class Prices(models.Model):
-    """ Prices Model
+class Price(models.Model):
+    """ Price Model
 
     Model that holds the prices of one type of gasoline by station.
     """
@@ -57,6 +61,7 @@ class Prices(models.Model):
         ('MG','Magna'),
         ('DS','Diesel')
     ]
+
     gas_type = models.CharField(
         max_length=20,
         choices=GAS_CHOICES,
@@ -81,15 +86,20 @@ class Profile(models.Model):
     Model that extends the user model and add extra information of the user.
     """
 
-    user = models.OneToOneField(User, on_delete=models.PROTECT)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    
+    phone_number = models.CharField(
+        max_length=20, 
+        blank=True
+    )
 
     def __str__(self):
         """Returns string representation of user"""
         return self
 
 
-class Complaints(models.Model):
-    """Complaints Model
+class Complaint(models.Model):
+    """Complaint Model
 
     A complaint is a bad score that an user makes 
     about the prices in a special station.
