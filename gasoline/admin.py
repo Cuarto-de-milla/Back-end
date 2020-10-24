@@ -4,9 +4,9 @@
 from django.contrib import admin
 
 # Models
-from .models import Stations, Prices, Profile, Complaints
+from .models import Station, Price, Profile, Complaint
 
-@admin.register(Stations)
+@admin.register(Station)
 class StationAdmin(admin.ModelAdmin):
     """Station model admin"""
 
@@ -28,7 +28,7 @@ class StationAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Prices)
+@admin.register(Price)
 class PriceAdmin(admin.ModelAdmin):
     """Price model admin"""
 
@@ -45,7 +45,7 @@ class PriceAdmin(admin.ModelAdmin):
         'date',
     )
 
-@admin.register(Complaints)
+@admin.register(Complaint)
 class  ComplaintAdmin(admin.ModelAdmin):
     """ Complaint model Admin"""
 
