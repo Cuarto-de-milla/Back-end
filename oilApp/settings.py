@@ -7,6 +7,9 @@ import os
 # Envron 
 import environ
 
+# Deploy 
+import django_heroku
+
 # Path of the base Dir
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,7 +24,7 @@ SECRET_KEY = env.str('SECRET_KEY')
 # Debug  variable
 DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [ '*']
 
 # Application definition
 DJANGO_APPS = [
@@ -54,6 +57,17 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'oilApp.urls'
+
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = (
+    os.path.join('static'),
+    )
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
 
 TEMPLATES = [
     {
@@ -106,5 +120,9 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
+# Media
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL= '/media/'
+
+# Heroku
+django_heroku.settings(locals())

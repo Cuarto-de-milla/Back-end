@@ -15,6 +15,11 @@ Django==3.1.2
 django-filter==2.4.0
 dj-database-url==0.5.0
 
+# Deploy
+django-heroku==0.3.1
+whitenoise==5.2.0
+gunicorn==20.0.4
+
 # Environment
 django-environ==0.4.5
 
