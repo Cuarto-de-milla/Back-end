@@ -12,7 +12,7 @@ class StationAdmin(admin.ModelAdmin):
 
     list_display = (
         'name',
-        # 'about',
+        'about',
         'picture',
         'register',
         'latitude',
