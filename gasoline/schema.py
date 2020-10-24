@@ -109,13 +109,13 @@ class PriceNode(DjangoObjectType):
     class Meta:
         """Class Meta"""
         model = Price
-        filter_fields = (
+        filter_fields = {
             'id': ['exact'],
             'station': ['exact', 'icontains','istartswith'],
             'gas_type': ['exact', 'icontains','istartswith'],
             'price':['exact', 'icontains','istartswith'],
             'date':['exact'],
-        )
+        }
     interfaces = (relay.Node,)
 
 
@@ -124,12 +124,12 @@ class UserType(DjangoObjectType):
     class Meta:
         """Class Meta"""
         model = User
-        filter_fields = (
+        filter_fields = {
             'username': ['exact', 'icontains','istartswith'],
             'first_name': ['exact', 'icontains','istartswith'],
             'last_name': ['exact', 'icontains','istartswith'],
             'email': ['exact', 'icontains','istartswith'],
-        )
+        }
     interfaces = (relay.Node,)
 
 
@@ -138,10 +138,10 @@ class ProfileType(DjangoObjectType):
     class Meta:
         """Class Meta"""
         model = Profile
-        filter_fields = (
+        filter_fields = {
             "user": ['exact', 'icontains','istartswith'],
             "phone_number": ['exact', 'icontains','istartswith'],
-        )
+        }
     interfaces = (relay.Node,)
 
 
@@ -150,7 +150,7 @@ class Complaint(DjangoObjectType):
     class Meta:
         """Class Meta"""
         model = Complaint
-        filter_fields = (
+        filter_fields = {
             'user': ['exact', 'icontains','istartswith'],
             'station': ['exact', 'icontains','istartswith'],
             'description': ['exact', 'icontains','istartswith'],
@@ -158,7 +158,7 @@ class Complaint(DjangoObjectType):
             'date': ['exact', 'icontains','istartswith'],
             'actual_price': ['exact', 'icontains','istartswith'],
             'offered_price': ['exact', 'icontains','istartswith'],
-        )
+        }
     interfaces = (relay.Node,)
 
 #-------------MUTATIONS------------
@@ -189,7 +189,10 @@ class Query(graphene.ObjectType):
     """Query class"""
     all_stations = graphene.List(StationType)
     all_prices = graphene.List(PriceType)
-
+    all_users = graphene.List(UserType)
+    all_profiles = graphene.List(ProfileType)
+    all_complaints = graphene.List(ComplaintType)
+    
     def resolve_all_stations(root, info):
         """ Return all the stations """
         return Station.objects.all()
@@ -197,6 +200,17 @@ class Query(graphene.ObjectType):
     def resolve_all_prices(root, info):
         """ Return all prices """
         return Price.objects.all()
+    """
+    def resolve_all_users(root, info):
+        return User
+    """
+    def resolve_all_profiles(root, info):
+        """ Return all profiles"""
+        return Profile.objects.all()
+    
+    def resolve_all_prices(root, info):
+        """ Return all complaints"""
+        return Complaint.objects.all()
 
 class Mutation(graphene.ObjectType):
     update_user = UpdateUser.Field()
