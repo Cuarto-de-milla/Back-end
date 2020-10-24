@@ -9,7 +9,7 @@ from .models import Price, Station, Profile, Complaint
 # Graphene
 import graphene
 from graphene_django import DjangoObjectType
-
+from graphene_django.filter import DjangoFilterConnectionField
 
 #------------------QUERIES---------------
 class StationType(DjangoObjectType):
@@ -87,18 +87,79 @@ class Complaint(DjangoObjectType):
         )
 
 
-class Query(graphene.ObjectType):
-    """Query class"""
-    all_stations = graphene.List(StationType)
-    all_prices = graphene.List(PriceType)
+#------------NODE-QUERIES----------
+class StationNode(DjangoObjectType):
+    class Meta:
+        model: Station
+        filter_fields = {
+            'id':['exact'],
+            'name':['exact', 'icontains','istartswith'],
+            'register':['exact', 'icontains','istartswith'],
+            'latitude':['exact', 'icontains','istartswith'], 
+            'longitude':['exact', 'icontains','istartswith'],
+            'town':['exact', 'icontains','istartswith'],
+            'state':['exact', 'icontains','istartswith'],
+            'is_active':['exact'],
+            'status':['exact'],
+        }
+    interfaces = (relay.Node,)
 
-    def resolve_all_stations(root, info):
-        """ Return all the stations """
-        return Station.objects.all()
+class PriceNode(DjangoObjectType):
+    """ Type for price model"""
+    class Meta:
+        """Class Meta"""
+        model = Price
+        filter_fields = (
+            'id': ['exact'],
+            'station': ['exact', 'icontains','istartswith'],
+            'gas_type': ['exact', 'icontains','istartswith'],
+            'price':['exact', 'icontains','istartswith'],
+            'date':['exact'],
+        )
+    interfaces = (relay.Node,)
 
-    def resolve_all_prices(root, info):
-        """ Return all prices """
-        return Price.objects.all()
+
+class UserType(DjangoObjectType):
+    """Type for user model"""
+    class Meta:
+        """Class Meta"""
+        model = User
+        filter_fields = (
+            'username': ['exact', 'icontains','istartswith'],
+            'first_name': ['exact', 'icontains','istartswith'],
+            'last_name': ['exact', 'icontains','istartswith'],
+            'email': ['exact', 'icontains','istartswith'],
+        )
+    interfaces = (relay.Node,)
+
+
+class ProfileType(DjangoObjectType):
+    """ Type for Profile model"""
+    class Meta:
+        """Class Meta"""
+        model = Profile
+        filter_fields = (
+            "user": ['exact', 'icontains','istartswith'],
+            "phone_number": ['exact', 'icontains','istartswith'],
+        )
+    interfaces = (relay.Node,)
+
+
+class Complaint(DjangoObjectType):
+    """ Type for Complaint Model"""
+    class Meta:
+        """Class Meta"""
+        model = Complaint
+        filter_fields = (
+            'user': ['exact', 'icontains','istartswith'],
+            'station': ['exact', 'icontains','istartswith'],
+            'description': ['exact', 'icontains','istartswith'],
+            'type_complaint': ['exact', 'icontains','istartswith'],
+            'date': ['exact', 'icontains','istartswith'],
+            'actual_price': ['exact', 'icontains','istartswith'],
+            'offered_price': ['exact', 'icontains','istartswith'],
+        )
+    interfaces = (relay.Node,)
 
 #-------------MUTATIONS------------
 
@@ -122,6 +183,20 @@ class UpdateUser(graphene.Mutation):
         user.save()
         return UpdateUser(user=user)
 
+#---------------SCHEMA---------------
+
+class Query(graphene.ObjectType):
+    """Query class"""
+    all_stations = graphene.List(StationType)
+    all_prices = graphene.List(PriceType)
+
+    def resolve_all_stations(root, info):
+        """ Return all the stations """
+        return Station.objects.all()
+
+    def resolve_all_prices(root, info):
+        """ Return all prices """
+        return Price.objects.all()
 
 class Mutation(graphene.ObjectType):
     update_user = UpdateUser.Field()
