@@ -88,10 +88,11 @@ class ComplaintType(DjangoObjectType):
         )
 
 
-#------------NODE-QUERIES----------
+#-----------NODE-QUERIES----------
+
 class StationNode(DjangoObjectType):
     class Meta:
-        model: Station
+        model = Station
         filter_fields = {
             'id':['exact'],
             'name':['exact', 'icontains','istartswith'],
@@ -106,13 +107,11 @@ class StationNode(DjangoObjectType):
         interfaces = (relay.Node,)
 
 class PriceNode(DjangoObjectType):
-    """ Type for price model"""
     class Meta:
-        """Class Meta"""
         model = Price
         filter_fields = {
             'id': ['exact'],
-            'station': ['exact', 'icontains','istartswith'],
+            'station__name': ['exact', 'icontains','istartswith'],
             'gas_type': ['exact', 'icontains','istartswith'],
             'price':['exact', 'icontains','istartswith'],
             'date':['exact'],
@@ -121,29 +120,25 @@ class PriceNode(DjangoObjectType):
 
 
 class ProfileNode(DjangoObjectType):
-    """ Type for Profile model"""
     class Meta:
-        """Class Meta"""
         model = Profile
         filter_fields = {
-            "user": ['exact', 'icontains','istartswith'],
+            "user": ['exact'],
             "phone_number": ['exact', 'icontains','istartswith'],
         }
         interfaces = (relay.Node,)
 
 
 class ComplaintNode(DjangoObjectType):
-    """ Type for Complaint Model"""
     class Meta:
-        """Class Meta"""
         model = Complaint
         filter_fields = {
-            'user': ['exact', 'icontains','istartswith'],
-            'station': ['exact', 'icontains','istartswith'],
+            'user': ['exact'],
+            'station__id': ['exact', 'icontains','istartswith'],
             'description': ['exact', 'icontains','istartswith'],
             'type_complaint': ['exact', 'icontains','istartswith'],
             'date': ['exact', 'icontains','istartswith'],
-            'actual_price': ['exact', 'icontains','istartswith'],
+            'actual_price__price': ['exact', 'icontains','istartswith'],
             'offered_price': ['exact', 'icontains','istartswith'],
         }
         interfaces = (relay.Node,)
@@ -176,7 +171,6 @@ class Query(graphene.ObjectType):
     """Query class"""
     all_stations = graphene.List(StationType)
     all_prices = graphene.List(PriceType)
-    all_users = graphene.List(UserType)
     all_profiles = graphene.List(ProfileType)
     all_complaints = graphene.List(ComplaintType)
 
@@ -187,10 +181,7 @@ class Query(graphene.ObjectType):
     def resolve_all_prices(root, info):
         """ Return all prices """
         return Price.objects.all()
-    """
-    def resolve_all_users(root, info):
-        return User
-    """
+
     def resolve_all_profiles(root, info):
         """ Return all profiles"""
         return Profile.objects.all()
