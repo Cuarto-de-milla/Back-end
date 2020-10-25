@@ -168,7 +168,7 @@ class UpdateUser(graphene.Mutation):
 #---------------SCHEMA---------------
 
 class Query(graphene.ObjectType):
-    """Query class"""
+    """General Query class"""
     all_stations = graphene.List(StationType)
     all_prices = graphene.List(PriceType)
     all_profiles = graphene.List(ProfileType)
@@ -189,6 +189,20 @@ class Query(graphene.ObjectType):
     def resolve_all_prices(root, info):
         """ Return all complaints"""
         return Complaint.objects.all()
+
+    """Node Query class"""
+    station = relay.Node.Field(StationNode)
+    node_station = DjangoFilterConnectionField(StationNode)
+
+    price = relay.Node.Field(PriceNode)
+    node_price = DjangoFilterConnectionField(PriceNode)
+
+    profile = relay.Node.Field(ProfileNode)
+    node_profile = DjangoFilterConnectionField(ProfileNode)
+
+    complaint = relay.Node.Field(ComplaintNode)
+    node_complaint = DjangoFilterConnectionField(ComplaintNode)
+
 
 class Mutation(graphene.ObjectType):
     update_user = UpdateUser.Field()
