@@ -9,7 +9,6 @@ class Station(models.Model):
     # Information
     name = models.CharField(
         max_length=200,
-        unique=True
     )
     about = models.CharField(
         max_length=200,
@@ -65,9 +64,9 @@ class Price(models.Model):
     station = models.ForeignKey(Station, on_delete=models.PROTECT)
 
     GAS_CHOICES = [
-        ('PR','Premium'),
-        ('MG','Magna'),
-        ('DS','Diesel')
+        ('premium','premium'),
+        ('regular','regular'),
+        ('diesel','diesel')
     ]
 
     gas_type = models.CharField(
@@ -80,7 +79,7 @@ class Price(models.Model):
         )
     date = models.DateTimeField(
         'created at',
-        auto_now=True,
+        auto_now_add=True,
         help_text='Date Time on wich the prices are registred'
         )
     def __str__(self):

@@ -33,6 +33,7 @@ class PriceAdmin(admin.ModelAdmin):
     """Price model admin"""
 
     list_display = (
+        'id',
         'station',
         'gas_type',
         'price',
