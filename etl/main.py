@@ -13,17 +13,19 @@ import numpy as np
 import pandas as pd
 import sqlalchemy as db
 import xmltodict as x2d
+from pathlib import Path
 from datetime import timedelta, datetime
 from timeit import default_timer as timer
 from dummy import get_city_and_state_for_location
 
 
+BASE_DIR = Path(__file__).resolve().parent
 URL_SOURCES = [
     'https://publicacionexterna.azurewebsites.net/publicaciones/places',
     'https://publicacionexterna.azurewebsites.net/publicaciones/prices'
 ]
 DB_STRING = os.environ['DATABASE_URL']
-DATA_FOLDER = 'data/'
+DATA_FOLDER = f'{BASE_DIR}/data/'
 DATASET_FILES = [DATA_FOLDER + 'places.xml', DATA_FOLDER + 'prices.xml']
 DF_COLS = ['place_id', 'name', 'cre_id', 'longitude', 'latitude', 'regular_price',
            'diesel_price', 'premium_price']
