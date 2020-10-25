@@ -37,7 +37,7 @@ class PriceType(DjangoObjectType):
     class Meta:
         """Class Meta"""
         model = Price
-        filter_fields = (
+        fields = (
             'id',
             'station',
             'gas_type',
@@ -70,7 +70,7 @@ class ProfileType(DjangoObjectType):
         )
 
 
-class Complaint(DjangoObjectType):
+class ComplaintType(DjangoObjectType):
     """ Type for Complaint Model"""
     class Meta:
         """Class Meta"""
@@ -119,7 +119,7 @@ class PriceNode(DjangoObjectType):
     interfaces = (relay.Node,)
 
 
-class UserType(DjangoObjectType):
+class UserNode(DjangoObjectType):
     """Type for user model"""
     class Meta:
         """Class Meta"""
@@ -133,7 +133,7 @@ class UserType(DjangoObjectType):
     interfaces = (relay.Node,)
 
 
-class ProfileType(DjangoObjectType):
+class ProfileNode(DjangoObjectType):
     """ Type for Profile model"""
     class Meta:
         """Class Meta"""
@@ -145,7 +145,7 @@ class ProfileType(DjangoObjectType):
     interfaces = (relay.Node,)
 
 
-class Complaint(DjangoObjectType):
+class ComplaintNode(DjangoObjectType):
     """ Type for Complaint Model"""
     class Meta:
         """Class Meta"""
@@ -192,7 +192,7 @@ class Query(graphene.ObjectType):
     all_users = graphene.List(UserType)
     all_profiles = graphene.List(ProfileType)
     all_complaints = graphene.List(ComplaintType)
-    
+
     def resolve_all_stations(root, info):
         """ Return all the stations """
         return Station.objects.all()
