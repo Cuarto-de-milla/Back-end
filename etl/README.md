@@ -12,12 +12,8 @@ The dataset files are obtained from the following sites:
 
 It is also necessary that the PostgreSQL database exists and is running.
 
-Finally, the following environment variables are required to be set in the system:
-
-- CUARTO_DB: name of the database
-- CUARTO_USER: owner username
-- CUARTO_PASS: access password
+Finally, the `DATABASE_URL` environment variable is required to be set in the system with the connection string for the PostgreSQL database.
 
 ## Execution
 
-Use either  `python main.py`  or  `python3 main.py` according to your system
+Use either  `python main.py`  or  `python3 main.py` according to your system.
