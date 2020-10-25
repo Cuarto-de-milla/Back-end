@@ -8,7 +8,7 @@ from .models import Price, Station, Profile, Complaint
 
 # Graphene
 import graphene
-from graphene import relay
+from graphene import relay, ObjectType
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
@@ -103,7 +103,7 @@ class StationNode(DjangoObjectType):
             'is_active':['exact'],
             'status':['exact'],
         }
-    interfaces = (relay.Node,)
+        interfaces = (relay.Node,)
 
 class PriceNode(DjangoObjectType):
     """ Type for price model"""
@@ -117,21 +117,7 @@ class PriceNode(DjangoObjectType):
             'price':['exact', 'icontains','istartswith'],
             'date':['exact'],
         }
-    interfaces = (relay.Node,)
-
-
-class UserNode(DjangoObjectType):
-    """Type for user model"""
-    class Meta:
-        """Class Meta"""
-        model = User
-        filter_fields = {
-            'username': ['exact', 'icontains','istartswith'],
-            'first_name': ['exact', 'icontains','istartswith'],
-            'last_name': ['exact', 'icontains','istartswith'],
-            'email': ['exact', 'icontains','istartswith'],
-        }
-    interfaces = (relay.Node,)
+        interfaces = (relay.Node,)
 
 
 class ProfileNode(DjangoObjectType):
@@ -143,7 +129,7 @@ class ProfileNode(DjangoObjectType):
             "user": ['exact', 'icontains','istartswith'],
             "phone_number": ['exact', 'icontains','istartswith'],
         }
-    interfaces = (relay.Node,)
+        interfaces = (relay.Node,)
 
 
 class ComplaintNode(DjangoObjectType):
@@ -160,7 +146,7 @@ class ComplaintNode(DjangoObjectType):
             'actual_price': ['exact', 'icontains','istartswith'],
             'offered_price': ['exact', 'icontains','istartswith'],
         }
-    interfaces = (relay.Node,)
+        interfaces = (relay.Node,)
 
 #-------------MUTATIONS------------
 
