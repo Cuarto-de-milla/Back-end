@@ -8,6 +8,7 @@ from .models import Price, Station, Profile, Complaint
 
 # Graphene
 import graphene
+from graphene import relay
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
