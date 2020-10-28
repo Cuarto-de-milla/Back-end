@@ -186,7 +186,7 @@ class Query(graphene.ObjectType):
         """ Return all profiles"""
         return Profile.objects.all()
     
-    def resolve_all_prices(root, info):
+    def resolve_all_complaints(root, info):
         """ Return all complaints"""
         return Complaint.objects.all()
 
