@@ -80,7 +80,7 @@ class Price(models.Model):
     date = models.DateTimeField(
         'created at',
         auto_now_add=True,
-        help_text='Date Time on wich the prices are registred'
+        help_text='Date Time on which the prices are registred'
         )
     def __str__(self):
         """ Returns price."""
@@ -98,6 +98,10 @@ class Profile(models.Model):
     phone_number = models.CharField(
         max_length=20, 
         blank=True
+    )
+
+    is_gobernment = models.BooleanField(
+        default=False
     )
 
     def __str__(self):

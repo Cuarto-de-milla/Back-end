@@ -87,6 +87,12 @@ class ComplaintType(DjangoObjectType):
             'offered_price'
         )
 
+        @classmethod
+        def get_Complaint(cls, info, id):
+            if info.context.user.is_gobernment:
+                return queryset.all()
+            else:
+                return f'Not auth'
 
 #-----------NODE-QUERIES----------
 
@@ -95,6 +101,7 @@ class StationNode(DjangoObjectType):
         model = Station
         filter_fields = {
             'id':['exact'],
+            'station__name': ['exact'],
             'name':['exact', 'icontains','istartswith'],
             'register':['exact', 'icontains','istartswith'],
             'latitude':['exact', 'icontains','istartswith'], 
