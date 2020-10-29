@@ -8,7 +8,7 @@ from .models import Price, Station, Profile, Complaint
 
 # Graphene
 import graphene
-from graphene import relay, ObjectType
+from graphene import relay, ObjectType, Connection, Node, ConnectionField
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
@@ -104,7 +104,14 @@ class StationNode(DjangoObjectType):
             'is_active':['exact'],
             'status':['exact'],
         }
-        interfaces = (relay.Node,)
+        interfaces = (relay.Node, Node)
+
+
+class StationConnection(Connection):
+    """Station Connection"""
+    class Meta:
+        """Class Meta"""
+        node = StationNode
 
 class PriceNode(DjangoObjectType):
     class Meta:
@@ -169,12 +176,13 @@ class UpdateUser(graphene.Mutation):
 
 class Query(graphene.ObjectType):
     """General Query class"""
-    all_stations = graphene.List(StationType)
+    # all_stations = graphene.List(StationType)
+    all_stations = ConnectionField(StationConnection)
     all_prices = graphene.List(PriceType)
     all_profiles = graphene.List(ProfileType)
     all_complaints = graphene.List(ComplaintType)
 
-    def resolve_all_stations(root, info):
+    def resolve_all_stations(root, info,  **kwargs):
         """ Return all the stations """
         return Station.objects.all()
 
