@@ -11,12 +11,12 @@ import requests
 import traceback
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 import sqlalchemy as db
 import xmltodict as x2d
 from pathlib import Path
 from datetime import timedelta, datetime
 from timeit import default_timer as timer
-from dummy import get_city_and_state_for_location
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -25,8 +25,10 @@ URL_SOURCES = [
     'https://publicacionexterna.azurewebsites.net/publicaciones/prices'
 ]
 DB_STRING = os.environ['DATABASE_URL']
-DATA_FOLDER = f'{BASE_DIR}/data/'
-DATASET_FILES = [DATA_FOLDER + 'places.xml', DATA_FOLDER + 'prices.xml']
+DATA_FOLDER = f'{BASE_DIR}/data'
+GEO_FOLDER = f'{DATA_FOLDER}/geodata'
+DATASET_FILES = [f'{DATA_FOLDER}/places.xml', f'{DATA_FOLDER}/prices.xml']
+GEO_FILE = f'{GEO_FOLDER}/MEX_adm2.shp'
 DF_COLS = ['place_id', 'name', 'cre_id', 'longitude', 'latitude', 'regular_price',
            'diesel_price', 'premium_price']
 
@@ -75,6 +77,18 @@ def create_price_data(record, price_type):
 
 def extract():
     """
+    Extract stage. Returns a tuple with:
+        GeoDataFrame of retrieved stations from datasets
+        GeoDataFrame of cities from local DIVA-GIS data
+        GeoDataFrame of states from local DIVA-GIS data
+    """
+    stations_df = extract_stations()
+    geo_gdf = gpd.read_file(GEO_FILE)
+    return stations_df, geo_gdf
+
+
+def extract_stations():
+    """
     Obtains dataset files of places and prices from the source website and then
     loads it into a Pandas DataFrame, which is returned
     """
@@ -119,7 +133,20 @@ def extract():
     return pd.DataFrame.from_dict(places_and_prices, orient='index')
 
 
-def transform(stations_df):
+def reverse_geocode(stations_df, geo_gdf):
+    """
+    Performs reverse geocoding on stations_gdf against the DIVA-GIS data to obtain
+    city and state information
+    
+    Returns the stations GeoDataFrame with new columns for city and state
+    """
+    stations_gdf = gpd.GeoDataFrame(stations_df, geometry=gpd.points_from_xy(stations_df.longitude, stations_df.latitude)).set_crs(epsg=4326)
+    stations_geo_gdf = gpd.sjoin(stations_gdf, geo_gdf[['NAME_1', 'NAME_2', 'geometry']])
+    stations_geo_gdf = stations_geo_gdf.rename(columns={'NAME_1': 'state', 'NAME_2': 'city'})
+    return stations_geo_gdf
+
+
+def transform(stations_df, geo_gdf):
     """
     This function cleans the gas stations dataframe in order to obtain records
     with at least one gas type price and correct values 
@@ -140,11 +167,9 @@ def transform(stations_df):
 
     stations_complete_data_df.index.names = ['id']
 
-    stations_complete_data_df[['city','state']] = stations_complete_data_df.apply(
-        lambda x_df: get_city_and_state_for_location(x_df['longitude'], x_df['latitude']), axis=1, result_type = 'expand'
-    )
+    stations_geo_gdf = reverse_geocode(stations_complete_data_df, geo_gdf)
 
-    return stations_complete_data_df.reset_index(0).to_dict('records')
+    return stations_geo_gdf.reset_index(0).to_dict('records')
 
 
 def load(stations_dict):
@@ -199,9 +224,9 @@ def load(stations_dict):
 def run():
     """
     Entry point for this module
-    """
-    raw_stations_df = extract()
-    clean_stations_dict = transform(raw_stations_df)
+    """    
+    raw_stations_df, geo_gdf = extract()
+    clean_stations_dict = transform(raw_stations_df, geo_gdf)
 
     start = timer()
     load(clean_stations_dict)
