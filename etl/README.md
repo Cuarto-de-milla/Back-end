@@ -14,6 +14,8 @@ Additionally, this module uses open geographical data from [DIVA-GIS](https://ww
 
 It is also necessary that the PostgreSQL database exists and is running.
 
+The libspatialindex-dev library  must be installed in the environment
+
 Finally, the `DATABASE_URL` environment variable is required to be set in the system with the connection string for the PostgreSQL database.
 
 ## Execution
