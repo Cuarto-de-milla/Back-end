@@ -6,6 +6,8 @@ The dataset files are obtained from the following sites:
 - File 1 (places.xml): [Listado de Estaciones de Servicio con Georreferencia, XML de CRE](https://datos.gob.mx/busca/dataset/estaciones-de-servicio-gasolineras-y-precios-finales-de-gasolina-y-diesel/resource/099481f4-14cb-4f99-aaf4-da846fb261e4)
 - File 2 (prices.xml): [Listado de Precios Comerciales de Gasolina y Diesel por Estación de Servicio, XML de CRE](https://datos.gob.mx/busca/dataset/estaciones-de-servicio-gasolineras-y-precios-finales-de-gasolina-y-diesel/resource/b1e92ceb-ba04-420f-bf48-42e4e8a27fe1)
 
+Additionally, this module uses open geographical data from [DIVA-GIS](https://www.diva-gis.org/) to find city and state from coordinates
+
 ## Requirements
 
 **Python 3.x**, any version of **pip**, and **virtualenv** (or **venv**)
