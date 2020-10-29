@@ -1,10 +1,10 @@
-""" gasoline model admin"""
+""" gasoline admin"""
 
 # Django
 from django.contrib import admin
 
 # Models
-from .models import Station, Price, Profile, Complaint
+from gasoline.models import Station, Price
 
 @admin.register(Station)
 class StationAdmin(admin.ModelAdmin):
@@ -43,27 +43,5 @@ class PriceAdmin(admin.ModelAdmin):
     list_filter = (
         'station',
         'gas_type',
-        'date',
-    )
-
-@admin.register(Complaint)
-class  ComplaintAdmin(admin.ModelAdmin):
-    """ Complaint model Admin"""
-
-    list_display = (
-        'user',
-        'station',
-        'description',
-        'link_evidence',
-        'type_complaint',
-        'date',
-        'actual_price',
-        'offered_price',
-    )
-
-    list_filter = (
-        'user',
-        'station',
-        'type_complaint',
         'date',
     )
