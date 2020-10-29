@@ -17,7 +17,6 @@ import xmltodict as x2d
 from pathlib import Path
 from datetime import timedelta, datetime
 from timeit import default_timer as timer
-from dummy import get_city_and_state_for_location
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -170,9 +169,7 @@ def transform(stations_df, geo_gdf):
 
     stations_geo_gdf = reverse_geocode(stations_complete_data_df, geo_gdf)
 
-    print(stations_geo_gdf[:10])
-
-    return stations_complete_data_df.reset_index(0).to_dict('records')
+    return stations_geo_gdf.reset_index(0).to_dict('records')
 
 
 def load(stations_dict):
@@ -229,7 +226,7 @@ def run():
     Entry point for this module
     """    
     raw_stations_df, geo_gdf = extract()
-    clean_stations_dict = transform(raw_stations_df, geo_gdf)    
+    clean_stations_dict = transform(raw_stations_df, geo_gdf)
 
     start = timer()
     load(clean_stations_dict)
