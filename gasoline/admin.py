@@ -18,6 +18,7 @@ class StationAdmin(admin.ModelAdmin):
         'latitude',
         'longitude',
         'state',
+        'town',
         'is_active',
         'status',
     )
