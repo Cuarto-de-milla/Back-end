@@ -25,6 +25,8 @@ URL_SOURCES = [
     'https://publicacionexterna.azurewebsites.net/publicaciones/prices'
 ]
 DB_STRING = os.environ['DATABASE_URL']
+STATIONS_TABLE_NAME = 'gasoline_station'
+PRICES_TABLE_NAME = 'gasoline_price'
 DATA_FOLDER = f'{BASE_DIR}/data'
 GEO_FOLDER = f'{DATA_FOLDER}/geodata'
 DATASET_FILES = [f'{DATA_FOLDER}/places.xml', f'{DATA_FOLDER}/prices.xml']
@@ -58,7 +60,7 @@ def get_dataset(index):
         sys.exit(1)
 
 
-def create_price_data(record, price_type):
+def create_price_data(record, primary_key, price_type):
     """
     Creates a dictionary for the record according to the specified price type
     Returns the dictionary or None if the record doesn't have that price type
@@ -69,7 +71,7 @@ def create_price_data(record, price_type):
             'gas_type': price_type,
             'price': record[price_key],
             'date': datetime.now(),
-            'station_id': record['id']
+            'station_id': primary_key
         }
     else:
         return None
@@ -169,7 +171,7 @@ def transform(stations_df, geo_gdf):
 
     stations_geo_gdf = reverse_geocode(stations_complete_data_df, geo_gdf)
 
-    return stations_geo_gdf.reset_index(0).to_dict('records')
+    return stations_geo_gdf.reset_index().to_dict('records')
 
 
 def load(stations_dict):
@@ -181,17 +183,18 @@ def load(stations_dict):
     engine = db.create_engine(DB_STRING)
     metadata = db.MetaData()
     prices_table = db.Table(
-        'gasoline_price', metadata, autoload=True, autoload_with=engine)
+        PRICES_TABLE_NAME, metadata, autoload=True, autoload_with=engine)
     stations_table = db.Table(
-        'gasoline_station', metadata, autoload=True, autoload_with=engine)
+        STATIONS_TABLE_NAME, metadata, autoload=True, autoload_with=engine)
 
-    with engine.connect() as connection:
+    with engine.begin() as connection:
         print('Inserting data...')
 
         for record in stations_dict:
             stations_data = {
                 'id': record['id'],
                 'name': record['name'],
+                'register': record['cre_id'],
                 'longitude': record['longitude'],
                 'latitude': record['latitude'],
                 'town': record['city'],
@@ -200,12 +203,14 @@ def load(stations_dict):
                 'status': 'ghost'
             }
 
-            regular_price_data = create_price_data(record, 'regular')
-            diesel_price_data = create_price_data(record, 'diesel')
-            premium_price_data = create_price_data(record, 'premium')
-
             try:
-                connection.execute(db.insert(stations_table), stations_data)
+                result = connection.execute(db.insert(stations_table), stations_data)
+
+                pk = result.inserted_primary_key[0]
+
+                regular_price_data = create_price_data(record, pk, 'regular')
+                diesel_price_data = create_price_data(record, pk, 'diesel')
+                premium_price_data = create_price_data(record, pk, 'premium')
 
                 if regular_price_data:
                     connection.execute(db.insert(prices_table), regular_price_data)
