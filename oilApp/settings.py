@@ -43,6 +43,8 @@ THIRD_PARTY_APPS = [
 ]
 LOCAL_APPS = [
     'gasoline',
+    'users',
+    'complaints',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -95,7 +97,7 @@ WSGI_APPLICATION = 'oilApp.wsgi.application'
 
 # Graphene
 GRAPHENE = {
-    "SCHEMA": "gasoline.schema.schema"
+    "SCHEMA": "oilApp.schema.schema"
 }
 
 # DATABASES

@@ -11,12 +11,12 @@ import requests
 import traceback
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 import sqlalchemy as db
 import xmltodict as x2d
 from pathlib import Path
 from datetime import timedelta, datetime
 from timeit import default_timer as timer
-from dummy import get_city_and_state_for_location
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -25,8 +25,12 @@ URL_SOURCES = [
     'https://publicacionexterna.azurewebsites.net/publicaciones/prices'
 ]
 DB_STRING = os.environ['DATABASE_URL']
-DATA_FOLDER = f'{BASE_DIR}/data/'
-DATASET_FILES = [DATA_FOLDER + 'places.xml', DATA_FOLDER + 'prices.xml']
+STATIONS_TABLE_NAME = 'gasoline_station'
+PRICES_TABLE_NAME = 'gasoline_price'
+DATA_FOLDER = f'{BASE_DIR}/data'
+GEO_FOLDER = f'{DATA_FOLDER}/geodata'
+DATASET_FILES = [f'{DATA_FOLDER}/places.xml', f'{DATA_FOLDER}/prices.xml']
+GEO_FILE = f'{GEO_FOLDER}/MEX_adm2.shp'
 DF_COLS = ['place_id', 'name', 'cre_id', 'longitude', 'latitude', 'regular_price',
            'diesel_price', 'premium_price']
 
@@ -56,7 +60,7 @@ def get_dataset(index):
         sys.exit(1)
 
 
-def create_price_data(record, price_type):
+def create_price_data(record, primary_key, price_type):
     """
     Creates a dictionary for the record according to the specified price type
     Returns the dictionary or None if the record doesn't have that price type
@@ -67,13 +71,25 @@ def create_price_data(record, price_type):
             'gas_type': price_type,
             'price': record[price_key],
             'date': datetime.now(),
-            'station_id': record['id']
+            'station_id': primary_key
         }
     else:
         return None
 
 
 def extract():
+    """
+    Extract stage. Returns a tuple with:
+        GeoDataFrame of retrieved stations from datasets
+        GeoDataFrame of cities from local DIVA-GIS data
+        GeoDataFrame of states from local DIVA-GIS data
+    """
+    stations_df = extract_stations()
+    geo_gdf = gpd.read_file(GEO_FILE)
+    return stations_df, geo_gdf
+
+
+def extract_stations():
     """
     Obtains dataset files of places and prices from the source website and then
     loads it into a Pandas DataFrame, which is returned
@@ -119,7 +135,20 @@ def extract():
     return pd.DataFrame.from_dict(places_and_prices, orient='index')
 
 
-def transform(stations_df):
+def reverse_geocode(stations_df, geo_gdf):
+    """
+    Performs reverse geocoding on stations_gdf against the DIVA-GIS data to obtain
+    city and state information
+    
+    Returns the stations GeoDataFrame with new columns for city and state
+    """
+    stations_gdf = gpd.GeoDataFrame(stations_df, geometry=gpd.points_from_xy(stations_df.longitude, stations_df.latitude)).set_crs(epsg=4326)
+    stations_geo_gdf = gpd.sjoin(stations_gdf, geo_gdf[['NAME_1', 'NAME_2', 'geometry']])
+    stations_geo_gdf = stations_geo_gdf.rename(columns={'NAME_1': 'state', 'NAME_2': 'city'})
+    return stations_geo_gdf
+
+
+def transform(stations_df, geo_gdf):
     """
     This function cleans the gas stations dataframe in order to obtain records
     with at least one gas type price and correct values 
@@ -140,11 +169,9 @@ def transform(stations_df):
 
     stations_complete_data_df.index.names = ['id']
 
-    stations_complete_data_df[['city','state']] = stations_complete_data_df.apply(
-        lambda x_df: get_city_and_state_for_location(x_df['longitude'], x_df['latitude']), axis=1, result_type = 'expand'
-    )
+    stations_geo_gdf = reverse_geocode(stations_complete_data_df, geo_gdf)
 
-    return stations_complete_data_df.reset_index(0).to_dict('records')
+    return stations_geo_gdf.reset_index().to_dict('records')
 
 
 def load(stations_dict):
@@ -156,17 +183,18 @@ def load(stations_dict):
     engine = db.create_engine(DB_STRING)
     metadata = db.MetaData()
     prices_table = db.Table(
-        'gasoline_price', metadata, autoload=True, autoload_with=engine)
+        PRICES_TABLE_NAME, metadata, autoload=True, autoload_with=engine)
     stations_table = db.Table(
-        'gasoline_station', metadata, autoload=True, autoload_with=engine)
+        STATIONS_TABLE_NAME, metadata, autoload=True, autoload_with=engine)
 
-    with engine.connect() as connection:
+    with engine.begin() as connection:
         print('Inserting data...')
 
         for record in stations_dict:
             stations_data = {
                 'id': record['id'],
                 'name': record['name'],
+                'register': record['cre_id'],
                 'longitude': record['longitude'],
                 'latitude': record['latitude'],
                 'town': record['city'],
@@ -175,12 +203,14 @@ def load(stations_dict):
                 'status': 'ghost'
             }
 
-            regular_price_data = create_price_data(record, 'regular')
-            diesel_price_data = create_price_data(record, 'diesel')
-            premium_price_data = create_price_data(record, 'premium')
-
             try:
-                connection.execute(db.insert(stations_table), stations_data)
+                result = connection.execute(db.insert(stations_table), stations_data)
+
+                pk = result.inserted_primary_key[0]
+
+                regular_price_data = create_price_data(record, pk, 'regular')
+                diesel_price_data = create_price_data(record, pk, 'diesel')
+                premium_price_data = create_price_data(record, pk, 'premium')
 
                 if regular_price_data:
                     connection.execute(db.insert(prices_table), regular_price_data)
@@ -199,9 +229,9 @@ def load(stations_dict):
 def run():
     """
     Entry point for this module
-    """
-    raw_stations_df = extract()
-    clean_stations_dict = transform(raw_stations_df)
+    """    
+    raw_stations_df, geo_gdf = extract()
+    clean_stations_dict = transform(raw_stations_df, geo_gdf)
 
     start = timer()
     load(clean_stations_dict)
