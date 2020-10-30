@@ -14,7 +14,7 @@ class Complaint(models.Model):
     """
     user = models.ForeignKey(
         User, 
-        on_delete=models.PROTECT
+        on_delete=models.CASCADE
     )
     station = models.ForeignKey(
         Station,
@@ -35,7 +35,7 @@ class Complaint(models.Model):
     # Prices
     actual_price = models.ForeignKey(
         Price, 
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         help_text='Price registered in the system when creating the complaint'
         )
     offered_price = models.FloatField(

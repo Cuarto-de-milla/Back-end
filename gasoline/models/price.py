@@ -12,7 +12,7 @@ class Price(models.Model):
 
     Model that holds the prices of one type of gasoline by station.
     """
-    station = models.ForeignKey(Station, on_delete=models.PROTECT)
+    station = models.ForeignKey(Station, on_delete=models.CASCADE)
 
     GAS_CHOICES = [
         ('premium','premium'),
