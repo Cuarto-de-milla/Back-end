@@ -11,6 +11,9 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
+# JWT 
+from graphql_jwt.decorators import login_required
+
 # Schemas
 from gasoline.schema import StationType, PriceType
 from users.schema import UserType
@@ -63,25 +66,19 @@ class CreateComplaint(graphene.Mutation):
         link_evidence = graphene.String(required=True)
         type_complaint = graphene.String(required=True)
 
-    def mutate(self,info,
-                price_id, offered_price,
-                description,link_evidence,
-                type_complaint):
+    @login_required
+    def mutate(self,info, **kwargs):
         """Mutation for create a complaint"""
-        user = info.context.user
-        if user.is_anonymous:
-            raise Exception('Must be Logged to create a Complaint')
-        
-        actual_price = Price.objects.get(pk=price_id)
+        actual_price = Price.objects.get(pk=kwargs.get('price_id'))
         
         complaint = Complaint(
-                            user=user,
+                            user=info.context.user,
                             station=actual_price.station,
                             actual_price=actual_price,
-                            offered_price=offered_price,
-                            description=description,
-                            link_evidence=link_evidence,
-                            type_complaint=type_complaint,
+                            offered_price=kwargs.get('offered_price'),
+                            description=kwargs.get('description'),
+                            link_evidence=kwargs.get('link_evidence'),
+                            type_complaint=kwargs.get('type_complaint'),
                     )
         complaint.save()
         return CreateComplaint(complaint=complaint)
@@ -91,13 +88,10 @@ class Query(graphene.ObjectType):
     """Complaints Query class."""
     my_complaints = graphene.List(ComplaintType)
 
+    @login_required
     def resolve_my_complaints(root, info):
         """ Return complaints created by the logged user"""
-        user = info.context.user
-        if user.is_anonymous:
-            raise Exception('Must be Logged to see Complaints')
-        
-        return Complaint.objects.filter(user=user)
+        return Complaint.objects.filter(user=info.context.user)
 
     # Node Query Class
     complaint = relay.Node.Field(ComplaintNode)

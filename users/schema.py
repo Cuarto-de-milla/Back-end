@@ -8,6 +8,10 @@ from graphene_django.filter import DjangoFilterConnectionField
 
 # Django
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+
+# JWT 
+from graphql_jwt.decorators import login_required
 
 # Models
 from users.models import Profile
@@ -49,25 +53,18 @@ class ProfileNode(DjangoObjectType):
 
 
 #-----------MUTATIONS----------
-class UpdateUser(graphene.Mutation):
-    class Arguments:
-        user = graphene.String(required=True)
-        password = graphene.String(required=True)
-        email = graphene.String(required=True)
-        first_name = graphene.String(required=True)
-        last_name = graphene.String()
+class UserInput(graphene.InputObjectType):
+    """ Arguments for User"""
+    username   = graphene.String(required=False)
+    first_name = graphene.String(required=False)
+    last_name  = graphene.String(required=False)
+    password   = graphene.String(required=False)
+    email      = graphene.String(required=False)
 
-    user = graphene.Field(UserType)
 
-    def mutate(self, info, user, password,email,first_name,last_name):
-        user = User(
-                password=password,
-                email=email,
-                first_name=first_name,
-                last_name=last_name
-            )
-        user.save()
-        return UpdateUser(user=user)
+class ProfileInput(graphene.InputObjectType):
+    """ Arguments for Profile"""
+    phone_number = graphene.String(required=False)
 
 
 class CreateUser(graphene.Mutation):
@@ -75,50 +72,85 @@ class CreateUser(graphene.Mutation):
     user = graphene.Field(UserType)
     profile = graphene.Field(ProfileType)
     class Arguments:
-        """Class Arguments of CreateUser"""
-        username = graphene.String(required=True)
-        first_name = graphene.String(required=True)
-        last_name = graphene.String(required=True)
-        password = graphene.String(required=True)
-        email = graphene.String(required=True)
-        phone_number = graphene.String(required=False)
+        """ Arguments for CreateUser
 
-    def mutate(root,info, **kwargs):
-        """Mutation to create a new User"""
+        UserData and ProfileData"""
+        user_data = UserInput(required=True)
+        profile_data = ProfileInput(required=False)
+
+    def mutate(root,info, user_data, **kwargs):
+        """Mutation to create a new User an ProfileUser"""
         # Create and save the user
         user = User(
-                    username=kwargs.get('username'),
-                    first_name=kwargs.get('first_name'),
-                    last_name=kwargs.get('last_name'),
-                    password=kwargs.get('password'),
-                    email=kwargs.get('email'),
+                    username=user_data['username'],
+                    first_name=user_data['first_name'],
+                    last_name=user_data['last_name'],
+                    password=user_data['password'],
+                    email=user_data['email'],
                 )
-        user.save()
+        user.save()        
 
         # Create and save the profile of user
-        profile = Profile(
-                    user=user,
-                    phone_number=kwargs.get('phone_number')
-                )
-        profile.save()
+        profile_data = kwargs.get('profile_data')
+        profile = Profile(user=user)
 
+        if profile_data is not None:
+            setattr(profile, 'phone_number' , profile_data.phone_number)
+
+        profile.save()
         return CreateUser(user=user,profile=profile)
+
+
+class UpdateUser(graphene.Mutation):
+    """ Update user and profile User"""
+    user = graphene.Field(UserType)
+    profile = graphene.Field(ProfileType)
+    
+    class Arguments:
+        """ Arguments for update User
+
+        UserData and ProfileData"""
+        user_data = UserInput(required=True)
+        profile_data = ProfileInput(required=False)
+
+    @login_required
+    def mutate(self, info, user_data, **kwargs):
+        """ Mutation to Update user and profile """
+        user = User.objects.get(username=user_data['username'])
+        profile = user.profile
+
+        #Assign user data        
+        for k, v in user_data.items():
+            if (k == 'password') and (v is not None):
+                user.set_password(user_data.password)
+            else:
+                setattr(user, k, v)
+
+        # Asign Profile Data
+        profile_data = kwargs.get('profile_data')
+        
+        if profile_data is not None:
+            for k, v in profile_data.items():
+                setattr(profile, k, v)
+
+        user.save()
+        profile.save()
+        return UpdateUser(user=user, profile=profile)
+
 
 class Query(graphene.ObjectType):
     """ User Query """
-    my_profile = graphene.List(ProfileType)
+    my_user = graphene.Field(ProfileType)
 
-    def resolve_my_profile(root, info):
+    @login_required
+    def resolve_my_user(root, info):
         """ Return profile of the logged user"""
-        user = info.context.user
-        if user.is_anonymous:
-            raise Exception('Must be Logged to see user profile')
-        
-        return Profile.objects.filter(user=user)
+        return Profile.objects.get(user=info.context.user)
     
     # Node Query Class
     profile = relay.Node.Field(ProfileNode)
     node_profile = DjangoFilterConnectionField(ProfileNode)
+
 
 class Mutation(graphene.ObjectType):
     update_user = UpdateUser.Field()
