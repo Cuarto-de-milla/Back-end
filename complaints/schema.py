@@ -92,7 +92,7 @@ class Query(graphene.ObjectType):
     my_complaints = graphene.List(ComplaintType)
 
     def resolve_my_complaints(root, info):
-        """ Return complaints created for the logged user"""
+        """ Return complaints created by the logged user"""
         user = info.context.user
         if user.is_anonymous:
             raise Exception('Must be Logged to see Complaints')
