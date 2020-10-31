@@ -72,11 +72,15 @@ class UpdateUser(graphene.Mutation):
 
 class Query(graphene.ObjectType):
     """ User Query """
-    all_profiles = graphene.List(ProfileType)
+    my_profile = graphene.List(ProfileType)
 
-    def resolve_all_profiles(root, info):
-        """ Return all profiles"""
-        return Profile.objects.all()
+    def resolve_my_profile(root, info):
+        """ Return profile of the logged user"""
+        user = info.context.user
+        if user.is_anonymous:
+            raise Exception('Must be Logged to see user profile')
+        
+        return Profile.objects.filter(user=user)
     
     # Node Query Class
     profile = relay.Node.Field(ProfileNode)

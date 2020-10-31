@@ -19,4 +19,4 @@ class Profile(models.Model):
 
     def __str__(self):
         """Returns string representation of user"""
-        return self
+        return self.user.username
