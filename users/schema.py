@@ -117,7 +117,7 @@ class UpdateUser(graphene.Mutation):
     @login_required
     def mutate(self, info, user_data, **kwargs):
         """ Mutation to Update user and profile """
-        user = User.objects.get(username=user_data['username'])
+        user = User.objects.get(pk=info.context.user.pk)
         profile = user.profile
 
         #Assign user data        
