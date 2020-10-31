@@ -89,11 +89,15 @@ class CreateComplaint(graphene.Mutation):
 #---------------SCHEMA---------------
 class Query(graphene.ObjectType):
     """Complaints Query class."""
-    all_complaints = graphene.List(ComplaintType)
+    my_complaints = graphene.List(ComplaintType)
 
-    def resolve_all_complaints(root, info):
-            """ Return all complaints"""
-            return Complaint.objects.all()
+    def resolve_my_complaints(root, info):
+        """ Return all complaints"""
+        user = info.context.user
+        if user.is_anonymous:
+            raise Exception('Must be Logged to see Complaints')
+        
+        return Complaint.objects.filter(user=user)
 
     # Node Query Class
     complaint = relay.Node.Field(ComplaintNode)
