@@ -11,6 +11,37 @@ from graphene import relay, ObjectType, Connection, Node, ConnectionField
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
+class StationType(DjangoObjectType):	
+    """Type for Station Model"""	
+    class Meta:	
+        """ Class Meta"""	
+        model = Station	
+        fields = (	
+            'id',	
+            'name',	
+            'about',	
+            'picture',	
+            'register',	
+            'latitude', 	
+            'longitude',	
+            'town',	
+            'state',	
+            'is_active',	
+            'status',	
+        )
+        
+class PriceType(DjangoObjectType):	
+    """ Type for price model"""	
+    class Meta:	
+        """Class Meta"""	
+        model = Price	
+        fields = (	
+            'id',	
+            'station',	
+            'gas_type',	
+            'price',	
+            'date',	
+        )
 
 #-----------NODE-QUERIES----------
 class StationNode(DjangoObjectType):
