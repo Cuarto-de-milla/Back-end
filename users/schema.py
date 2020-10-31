@@ -70,6 +70,40 @@ class UpdateUser(graphene.Mutation):
         return UpdateUser(user=user)
 
 
+class CreateUser(graphene.Mutation):
+    """ Create a new user and Profile"""
+    user = graphene.Field(UserType)
+    profile = graphene.Field(ProfileType)
+    class Arguments:
+        """Class Arguments of CreateUser"""
+        username = graphene.String(required=True)
+        first_name = graphene.String(required=True)
+        last_name = graphene.String(required=True)
+        password = graphene.String(required=True)
+        email = graphene.String(required=True)
+        phone_number = graphene.String(required=False)
+
+    def mutate(root,info, **kwargs):
+        """Mutation to create a new User"""
+        # Create and save the user
+        user = User(
+                    username=kwargs.get('username'),
+                    first_name=kwargs.get('first_name'),
+                    last_name=kwargs.get('last_name'),
+                    password=kwargs.get('password'),
+                    email=kwargs.get('email'),
+                )
+        user.save()
+
+        # Create and save the profile of user
+        profile = Profile(
+                    user=user,
+                    phone_number=kwargs.get('phone_number')
+                )
+        profile.save()
+
+        return CreateUser(user=user,profile=profile)
+
 class Query(graphene.ObjectType):
     """ User Query """
     my_profile = graphene.List(ProfileType)
@@ -88,3 +122,4 @@ class Query(graphene.ObjectType):
 
 class Mutation(graphene.ObjectType):
     update_user = UpdateUser.Field()
+    create_user = CreateUser.Field()
