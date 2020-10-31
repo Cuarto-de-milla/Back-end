@@ -13,6 +13,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     
     phone_number = models.CharField(
+        null=True,
         max_length=20, 
         blank=True
     )
