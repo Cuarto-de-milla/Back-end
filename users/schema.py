@@ -85,9 +85,10 @@ class CreateUser(graphene.Mutation):
                     username=user_data['username'],
                     first_name=user_data['first_name'],
                     last_name=user_data['last_name'],
-                    password=user_data['password'],
                     email=user_data['email'],
                 )
+
+        user.set_password(user_data['password'])        
         user.save()        
 
         # Create and save the profile of user
