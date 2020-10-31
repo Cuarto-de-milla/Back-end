@@ -33,6 +33,8 @@ DATASET_FILES = [f'{DATA_FOLDER}/places.xml', f'{DATA_FOLDER}/prices.xml']
 GEO_FILE = f'{GEO_FOLDER}/MEX_adm2.shp'
 DF_COLS = ['place_id', 'name', 'cre_id', 'longitude', 'latitude', 'regular_price',
            'diesel_price', 'premium_price']
+N_STATES = 3
+N_ROWS = 2250
 
 
 def get_dataset(index):
@@ -148,6 +150,16 @@ def reverse_geocode(stations_df, geo_gdf):
     return stations_geo_gdf
 
 
+def get_states_with_most_rows(gdf, n):
+    """
+    Retrieves a list of the 'n' states with the highest count of rows
+    """
+    counts = gdf.groupby('state').size().reset_index(name='counts') \
+            .sort_values('counts').tail(n)['state'].values
+
+    return counts
+
+
 def transform(stations_df, geo_gdf):
     """
     This function cleans the gas stations dataframe in order to obtain records
@@ -171,7 +183,9 @@ def transform(stations_df, geo_gdf):
 
     stations_geo_gdf = reverse_geocode(stations_complete_data_df, geo_gdf)
 
-    return stations_geo_gdf.reset_index().to_dict('records')
+    frequent_states = get_states_with_most_rows(stations_geo_gdf, N_STATES)
+
+    return stations_geo_gdf[stations_geo_gdf['state'].isin(frequent_states)].reset_index()[:N_ROWS].to_dict('records')
 
 
 def load(stations_dict):
