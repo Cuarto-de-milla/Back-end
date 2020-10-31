@@ -8,6 +8,9 @@ from users.schema import Query as UserQuery
 from complaints.schema import Query as ComplaintQuery
 from gasoline.schema import Query as GasolineQuery
 
+# JWT - Graphene
+import graphql_jwt
+
 # Mutations
 from users.schema import Mutation as UserMutation
 from complaints.schema import Mutation as ComplaintMutation
@@ -28,7 +31,9 @@ class Mutation(UserMutation,
             graphene.ObjectType,
             ):
     """Main mutation class"""
-    pass
-
+    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
+    verify_token = graphql_jwt.Verify.Field()
+    refresh_token = graphql_jwt.Refresh.Field()
+    revoke_token = graphql_jwt.Revoke.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

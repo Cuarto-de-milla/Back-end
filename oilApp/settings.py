@@ -2,6 +2,7 @@
 
 # Utilities
 from pathlib import Path
+from datetime import timedelta
 import os
 
 # Envron 
@@ -40,6 +41,7 @@ THIRD_PARTY_APPS = [
     'graphene_django',
     'django_filters',
     'corsheaders',
+    'graphql_jwt.refresh_token.apps.RefreshTokenConfig',
 ]
 LOCAL_APPS = [
     'gasoline',
@@ -59,7 +61,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
 ]
 CORS_ORIGIN_ALLOW_ALL = True 
 CORS_ALLOW_CREDENTIALS = True
@@ -97,7 +99,23 @@ WSGI_APPLICATION = 'oilApp.wsgi.application'
 
 # Graphene
 GRAPHENE = {
-    "SCHEMA": "oilApp.schema.schema"
+    "SCHEMA": "oilApp.schema.schema",
+    'MIDDLEWARE': [
+        'graphql_jwt.middleware.JSONWebTokenMiddleware',
+    ],
+}
+
+# JWT
+AUTHENTICATION_BACKENDS = [
+    'graphql_jwt.backends.JSONWebTokenBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+GRAPHQL_JWT = {
+    'JWT_VERIFY_EXPIRATION': True,
+    'JWT_LONG_RUNNING_REFRESH_TOKEN': True,
+    'JWT_EXPIRATION_DELTA': timedelta(minutes=60),
+    'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=7),
 }
 
 # DATABASES
