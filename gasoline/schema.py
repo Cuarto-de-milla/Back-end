@@ -1,6 +1,7 @@
 """Schemas for gasoline app """
 # Django
 import django_filters
+from django.db.models import Avg
 
 # Models
 from gasoline.models import Price, Station
@@ -98,8 +99,7 @@ class Query(graphene.ObjectType):
     """Gasoline Query class"""
     all_stations = ConnectionField(StationConnection)
     all_prices = ConnectionField(PriceConnection)
-    avg_price_by_state = ConnectionField(PriceConnection)
-    filtered_price = ConnectionField(PriceConnection)
+    avg_price_by_state = graphene.Float(PriceType,state=graphene.String(required=True))
 
     def resolve_all_stations(root, info, **kwargs):
         """ Return all the stations """
@@ -109,15 +109,8 @@ class Query(graphene.ObjectType):
         """ Return all prices """
         return Price.objects.filter(station__is_active=True)
     
-    def resolve_avg_price_by_state(root,info,estado):
-        return Price.objects.filter(station__state=estado).aggregate(Avg(station__price))
-
-    def resolve_filtered_price(root,info,estado,ciudad,tipo):
-        return Price.objects.filter(
-            station__state=estado, 
-            station__town=ciudad,
-            gas_type=tipo)
-            
+    def resolve_avg_price_by_state(root,info,state):
+        return Price.objects.filter(station__state=state).aggregate(Avg('price'))
 
     # Node Query class
     station = relay.Node.Field(StationNode)
