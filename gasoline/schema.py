@@ -98,6 +98,8 @@ class Query(graphene.ObjectType):
     """Gasoline Query class"""
     all_stations = ConnectionField(StationConnection)
     all_prices = ConnectionField(PriceConnection)
+    avg_price_by_state = ConnectionField(PriceConnection)
+    filtered_price = ConnectionField(PriceConnection)
 
     def resolve_all_stations(root, info, **kwargs):
         """ Return all the stations """
@@ -107,10 +109,10 @@ class Query(graphene.ObjectType):
         """ Return all prices """
         return Price.objects.filter(station__is_active=True)
     
-    def resolve_all_prices_by_state(root,info,estado):
+    def resolve_avg_price_by_state(root,info,estado):
         return Price.objects.filter(station__state=estado).aggregate(Avg(station__price))
 
-    def resolve_all_prices_by_filters(root,info,estado,ciudad,tipo):
+    def resolve_filtered_price(root,info,estado,ciudad,tipo):
         return Price.objects.filter(
             station__state=estado, 
             station__town=ciudad,
