@@ -279,3 +279,4 @@ cride/media/
 .env
 .envs/*
 !.envs/.local/
+cuarto_up.sh
