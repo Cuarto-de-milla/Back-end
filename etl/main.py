@@ -6,6 +6,7 @@ insert records into a database
 
 import os
 import sys
+import time
 import random
 import requests
 import traceback
@@ -14,6 +15,7 @@ import pandas as pd
 import geopandas as gpd
 import sqlalchemy as db
 import xmltodict as x2d
+import lxml.html as html
 from pathlib import Path
 from datetime import timedelta, datetime
 from timeit import default_timer as timer
@@ -35,6 +37,40 @@ DF_COLS = ['place_id', 'name', 'cre_id', 'longitude', 'latitude', 'regular_price
            'diesel_price', 'premium_price']
 N_STATES = 3
 N_ROWS = 2250
+
+def get_state_prices():
+    """
+    Attempts to retrieve a dictionary with the states of Mexico and it prices for
+    gasoline magna, premium and diesel with the following format:
+    {'name_state':{'magna':18.80, 'premium':19.76, 'diesel':20.98}'name_state_2'...}
+    website (deleting first any previously existing file)
+    """
+    url = 'http://www.gasolinamx.com/tabla-del-precio-de-la-gasolina-en-mexico'
+    XPATH_STATES = '//table[@class="table table-bordered table-striped"]/tbody/tr/td/a/text()'
+    XPATH_PRICES = '//table[@class="table table-bordered table-striped"]/tbody/tr/td/text()'
+    try:
+        response = requests.get(url)
+        r = response.content.decode('utf-8')
+        parsed = html.fromstring(r)
+        print('Successful request')
+        states = parsed.xpath(XPATH_STATES)
+        prices = parsed.xpath(XPATH_PRICES)
+        gas_type_prices = []
+
+        i=0
+        print('Creating dictionary...........')
+        for state in states:
+            j = i + 1
+            k = i + 2
+            state = dict(mangna=float(prices[i]), premium=float(prices[j]), diesel=float(prices[k]))
+            gas_type_prices.append(state)
+            i += 3
+        state_prices = dict(zip(states, gas_type_prices))
+        print('Dictionary completed')
+
+        return state_prices
+    except ValueError as ve:
+        print('A problem ocurred in the state_prices, try again',ve)
 
 
 def get_dataset(index):
@@ -141,7 +177,7 @@ def reverse_geocode(stations_df, geo_gdf):
     """
     Performs reverse geocoding on stations_gdf against the DIVA-GIS data to obtain
     city and state information
-    
+
     Returns the stations GeoDataFrame with new columns for city and state
     """
     stations_gdf = gpd.GeoDataFrame(stations_df, geometry=gpd.points_from_xy(stations_df.longitude, stations_df.latitude)).set_crs(epsg=4326)
@@ -163,7 +199,7 @@ def get_states_with_most_rows(gdf, n):
 def transform(stations_df, geo_gdf):
     """
     This function cleans the gas stations dataframe in order to obtain records
-    with at least one gas type price and correct values 
+    with at least one gas type price and correct values
 
     It returns the representation of the cleaned dataframe as a list of dictionaries
     """
@@ -172,8 +208,8 @@ def transform(stations_df, geo_gdf):
     stations_complete_data_df = stations_df[stations_df['latitude'].notna() & stations_df['longitude'].notna() &
         (stations_df['regular_price'].notna() | stations_df['premium_price'].notna() | stations_df['diesel_price'].notna())].copy()
 
-    bad_records = stations_complete_data_df[(stations_complete_data_df['regular_price'] <= 1) | 
-        (stations_complete_data_df['diesel_price'] <= 1) | (stations_complete_data_df['premium_price'] <= 1) | 
+    bad_records = stations_complete_data_df[(stations_complete_data_df['regular_price'] <= 1) |
+        (stations_complete_data_df['diesel_price'] <= 1) | (stations_complete_data_df['premium_price'] <= 1) |
         (stations_complete_data_df['regular_price'] >= 40) | (stations_complete_data_df['diesel_price'] >= 40) |
         (stations_complete_data_df['premium_price'] >= 40)]
 
@@ -243,7 +279,7 @@ def load(stations_dict):
 def run():
     """
     Entry point for this module
-    """    
+    """
     raw_stations_df, geo_gdf = extract()
     clean_stations_dict = transform(raw_stations_df, geo_gdf)
 
