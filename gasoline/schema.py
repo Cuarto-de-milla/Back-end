@@ -11,6 +11,7 @@ from graphene import relay, ObjectType, Connection, Node, ConnectionField
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
+#-------------Main types-----------
 class StationType(DjangoObjectType):	
     """Type for Station Model"""	
     class Meta:	
@@ -40,7 +41,7 @@ class PriceType(DjangoObjectType):
             'station',	
             'gas_type',	
             'price',	
-            'date',	
+            'date',
         )
 
 #-----------NODE-QUERIES----------
@@ -62,7 +63,6 @@ class StationNode(DjangoObjectType):
         }
         interfaces = (relay.Node, Node)
 
-
 class StationConnection(Connection):
     """Station Connection"""
     class Meta:
@@ -81,9 +81,10 @@ class PriceNode(DjangoObjectType):
             'gas_type': ['exact', 'icontains','istartswith'],
             'price':['exact', 'icontains','istartswith'],
             'date':['exact'],
+            'station__state':['exact','icontains','istartswith'],
+            'station__town':['exact','icontains','istartswith'],
         }
         interfaces = (relay.Node,Node)
-
 
 class PriceConnection(Connection):
     """Price Connection"""
@@ -98,13 +99,23 @@ class Query(graphene.ObjectType):
     all_stations = ConnectionField(StationConnection)
     all_prices = ConnectionField(PriceConnection)
 
-    def resolve_all_stations(root, info,  **kwargs):
+    def resolve_all_stations(root, info, **kwargs):
         """ Return all the stations """
         return Station.objects.filter(is_active=True)
 
     def resolve_all_prices(root, info, **kwargs):
         """ Return all prices """
         return Price.objects.filter(station__is_active=True)
+    
+    def resolve_all_prices_by_state(root,info,estado):
+        return Price.objects.filter(station__state=estado).aggregate(Avg(station__price))
+
+    def resolve_all_prices_by_filters(root,info,estado,ciudad,tipo):
+        return Price.objects.filter(
+            station__state=estado, 
+            station__town=ciudad,
+            gas_type=tipo)
+            
 
     # Node Query class
     station = relay.Node.Field(StationNode)
