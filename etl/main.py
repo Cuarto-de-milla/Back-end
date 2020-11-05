@@ -26,7 +26,7 @@ URL_SOURCES = [
     'https://publicacionexterna.azurewebsites.net/publicaciones/places',
     'https://publicacionexterna.azurewebsites.net/publicaciones/prices'
 ]
-DB_STRING = os.environ['DATABASE_URL']
+DB_STRING = os.environ['DATABASE_URL']# change to dummy_url for local test
 STATIONS_TABLE_NAME = 'gasoline_station'
 PRICES_TABLE_NAME = 'gasoline_price'
 DATA_FOLDER = f'{BASE_DIR}/data'
@@ -132,8 +132,8 @@ def extract_stations():
     Obtains dataset files of places and prices from the source website and then
     loads it into a Pandas DataFrame, which is returned
     """
-    get_dataset(0)
-    get_dataset(1)
+    get_dataset(0)#comment to avoid download
+    get_dataset(1)#comment to avoid download
 
     places_and_prices = {}
 
