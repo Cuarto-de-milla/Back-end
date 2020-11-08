@@ -242,7 +242,7 @@ def load(stations_dict):
         
         print('Inserting data...')
 
-        for record in stations_dict:
+        for record in stations_dict[:10]:
             stations_data = {
                 'id': record['id'],
                 'name': record['name'],
@@ -258,20 +258,25 @@ def load(stations_dict):
             try:
                 #insert_stmt = db.insert(stations_table)
                 func_insert_stmt = insert_stmt(stations_table).values()
+                func_prices_insert_stmt = insert_stmt(prices_table).values()
                 insert_stmt.bind = engine
                 result = connection.execute(func_insert_stmt.on_conflict_do_update(constraint=stations_table.primary_key, set_=stations_data), stations_data)#result = connection.execute(db.insert(stations_table), stations_data) ###constrain=stations_table.key,index_elements=stations_data, set_=stations_data) ######on_conflict_do_update(index_elements=['register'], set_=stations_data)
                 pk = result.inserted_primary_key[0]
+                print(result)
 
                 regular_price_data = create_price_data(record, pk, 'regular')
                 diesel_price_data = create_price_data(record, pk, 'diesel')
                 premium_price_data = create_price_data(record, pk, 'premium')
 
                 if regular_price_data:
-                    connection.execute(db.insert(prices_table), regular_price_data)
+                    connection.execute(func_prices_insert_stmt.on_conflict_do_update(constraint=prices_table.primary_key, set_=regular_price_data), regular_price_data)
+                    #connection.execute(db.insert(prices_table), regular_price_data)
                 if diesel_price_data:
-                    connection.execute(db.insert(prices_table), diesel_price_data)
+                    connection.execute(func_prices_insert_stmt.on_conflict_do_update(constraint=prices_table.primary_key, set_=diesel_price_data), diesel_price_data)
+                    #connection.execute(db.insert(prices_table), diesel_price_data)
                 if premium_price_data:
-                    connection.execute(db.insert(prices_table), premium_price_data)
+                    connection.execute(func_prices_insert_stmt.on_conflict_do_update(constraint=prices_table.primary_key, set_=premium_price_data), premium_price_data)
+                    #connection.execute(db.insert(prices_table), premium_price_data)
             except Exception:
                 print('A problem ocurred when inserting records')
                 traceback.print_exc()
