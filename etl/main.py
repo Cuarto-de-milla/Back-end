@@ -242,7 +242,7 @@ def load(stations_dict):
         
         print('Inserting data...')
 
-        for record in stations_dict[:10]:
+        for record in stations_dict:
             stations_data = {
                 'id': record['id'],
                 'name': record['name'],
