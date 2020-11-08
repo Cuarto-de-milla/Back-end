@@ -17,9 +17,9 @@ import sqlalchemy as db
 import xmltodict as x2d
 import lxml.html as html
 from pathlib import Path
-from sqlalchemy.dialects.postgresql import Insert as insert_stmt# testing
 from datetime import timedelta, datetime
 from timeit import default_timer as timer
+from sqlalchemy.dialects.postgresql import Insert as insert_stmt
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -27,7 +27,7 @@ URL_SOURCES = [
     'https://publicacionexterna.azurewebsites.net/publicaciones/places',
     'https://publicacionexterna.azurewebsites.net/publicaciones/prices'
 ]
-DB_STRING = os.environ['DUMMY_DATABASE_URL']# change to DUMMY_DATABASE_URL for local test and original DATABASE_URL
+DB_STRING = os.environ['DATABASE_URL']
 STATIONS_TABLE_NAME = 'gasoline_station'
 PRICES_TABLE_NAME = 'gasoline_price'
 DATA_FOLDER = f'{BASE_DIR}/data'
@@ -133,8 +133,8 @@ def extract_stations():
     Obtains dataset files of places and prices from the source website and then
     loads it into a Pandas DataFrame, which is returned
     """
-    #get_dataset(0)#comment to avoid download
-    #get_dataset(1)#comment to avoid download
+    get_dataset(0)
+    get_dataset(1)
 
     places_and_prices = {}
 
@@ -256,11 +256,10 @@ def load(stations_dict):
             }
 
             try:
-                #insert_stmt = db.insert(stations_table)
                 func_insert_stmt = insert_stmt(stations_table).values()
                 func_prices_insert_stmt = insert_stmt(prices_table).values()
                 insert_stmt.bind = engine
-                result = connection.execute(func_insert_stmt.on_conflict_do_update(constraint=stations_table.primary_key, set_=stations_data), stations_data)#result = connection.execute(db.insert(stations_table), stations_data) ###constrain=stations_table.key,index_elements=stations_data, set_=stations_data) ######on_conflict_do_update(index_elements=['register'], set_=stations_data)
+                result = connection.execute(func_insert_stmt.on_conflict_do_update(constraint=stations_table.primary_key, set_=stations_data), stations_data)
                 pk = result.inserted_primary_key[0]
                 print(result)
 
@@ -270,13 +269,10 @@ def load(stations_dict):
 
                 if regular_price_data:
                     connection.execute(func_prices_insert_stmt.on_conflict_do_update(constraint=prices_table.primary_key, set_=regular_price_data), regular_price_data)
-                    #connection.execute(db.insert(prices_table), regular_price_data)
                 if diesel_price_data:
                     connection.execute(func_prices_insert_stmt.on_conflict_do_update(constraint=prices_table.primary_key, set_=diesel_price_data), diesel_price_data)
-                    #connection.execute(db.insert(prices_table), diesel_price_data)
                 if premium_price_data:
                     connection.execute(func_prices_insert_stmt.on_conflict_do_update(constraint=prices_table.primary_key, set_=premium_price_data), premium_price_data)
-                    #connection.execute(db.insert(prices_table), premium_price_data)
             except Exception:
                 print('A problem ocurred when inserting records')
                 traceback.print_exc()
