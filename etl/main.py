@@ -17,6 +17,7 @@ import sqlalchemy as db
 import xmltodict as x2d
 import lxml.html as html
 from pathlib import Path
+from sqlalchemy.dialects.postgresql import Insert as insert_stmt# testing
 from datetime import timedelta, datetime
 from timeit import default_timer as timer
 
@@ -26,7 +27,7 @@ URL_SOURCES = [
     'https://publicacionexterna.azurewebsites.net/publicaciones/places',
     'https://publicacionexterna.azurewebsites.net/publicaciones/prices'
 ]
-DB_STRING = os.environ['DATABASE_URL']# change to dummy_url for local test
+DB_STRING = os.environ['DUMMY_DATABASE_URL']# change to DUMMY_DATABASE_URL for local test and original DATABASE_URL
 STATIONS_TABLE_NAME = 'gasoline_station'
 PRICES_TABLE_NAME = 'gasoline_price'
 DATA_FOLDER = f'{BASE_DIR}/data'
@@ -132,8 +133,8 @@ def extract_stations():
     Obtains dataset files of places and prices from the source website and then
     loads it into a Pandas DataFrame, which is returned
     """
-    get_dataset(0)#comment to avoid download
-    get_dataset(1)#comment to avoid download
+    #get_dataset(0)#comment to avoid download
+    #get_dataset(1)#comment to avoid download
 
     places_and_prices = {}
 
@@ -238,6 +239,7 @@ def load(stations_dict):
         STATIONS_TABLE_NAME, metadata, autoload=True, autoload_with=engine)
 
     with engine.begin() as connection:
+        
         print('Inserting data...')
 
         for record in stations_dict:
@@ -254,8 +256,10 @@ def load(stations_dict):
             }
 
             try:
-                result = connection.execute(db.insert(stations_table), stations_data)
-
+                #insert_stmt = db.insert(stations_table)
+                func_insert_stmt = insert_stmt(stations_table).values()
+                insert_stmt.bind = engine
+                result = connection.execute(func_insert_stmt.on_conflict_do_update(constraint=stations_table.primary_key, set_=stations_data), stations_data)#result = connection.execute(db.insert(stations_table), stations_data) ###constrain=stations_table.key,index_elements=stations_data, set_=stations_data) ######on_conflict_do_update(index_elements=['register'], set_=stations_data)
                 pk = result.inserted_primary_key[0]
 
                 regular_price_data = create_price_data(record, pk, 'regular')
