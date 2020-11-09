@@ -1,35 +1,35 @@
-# Base
-aniso8601==7.0.0
-asgiref==3.2.10
-promise==2.3
-Pillow==8.0.0
-pytz==2020.1
-Rx==1.6.1
-singledispatch==3.4.0.3
-six==1.15.0
-sqlparse==0.4.1
-Unidecode==1.1.1
+# # Base
+# aniso8601==7.0.0
+# asgiref==3.2.10
+# promise==2.3
+# Pillow==8.0.0
+# pytz==2020.1
+# Rx==1.6.1
+# singledispatch==3.4.0.3
+# six==1.15.0
+# sqlparse==0.4.1
+# Unidecode==1.1.1
 
-# Django
-Django==3.1.2
-django-filter==2.4.0
-dj-database-url==0.5.0
-django-graphql-jwt==0.3.1
+# # Django
+# Django==3.1.2
+# django-filter==2.4.0
+# dj-database-url==0.5.0
+# django-graphql-jwt==0.3.1
 
-# Deploy
-django-heroku==0.3.1
-whitenoise==5.2.0
-gunicorn==20.0.4
-django-cors-headers==3.5.0
+# # Deploy
+# django-heroku==0.3.1
+# whitenoise==5.2.0
+# gunicorn==20.0.4
+# django-cors-headers==3.5.0
 
-# Environment
-django-environ==0.4.5
+# # Environment
+# django-environ==0.4.5
 
-# graphene
-graphene==2.1.8
-graphene-django==2.13.0
-graphql-core==2.3.2
-graphql-relay==2.0.1
+# # graphene
+# graphene==2.1.8
+# graphene-django==2.13.0
+# graphql-core==2.3.2
+# graphql-relay==2.0.1
 
 # ETL
 certifi==2020.6.20
@@ -38,10 +38,13 @@ geopandas==0.8.1
 idna==2.10
 numpy==1.19.2
 pandas==1.1.3
-psycopg2-binary==2.8.6
+#psycopg2-dev
+#psycopg2-bin
+#psycopg2-binary==2.8.6
 python-dateutil==2.8.1
 requests==2.24.0
 Rtree==0.9.4
 SQLAlchemy==1.3.20
 urllib3==1.25.11
 xmltodict==0.12.0
+lxml==4.6.1
