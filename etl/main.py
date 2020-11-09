@@ -19,7 +19,6 @@ import lxml.html as html
 from pathlib import Path
 from datetime import timedelta, datetime
 from timeit import default_timer as timer
-from sqlalchemy.dialects.postgresql import Insert as insert_stmt
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -239,7 +238,6 @@ def load(stations_dict):
         STATIONS_TABLE_NAME, metadata, autoload=True, autoload_with=engine)
 
     with engine.begin() as connection:
-        
         print('Inserting data...')
 
         for record in stations_dict:
@@ -256,23 +254,20 @@ def load(stations_dict):
             }
 
             try:
-                func_insert_stmt = insert_stmt(stations_table).values()
-                func_prices_insert_stmt = insert_stmt(prices_table).values()
-                insert_stmt.bind = engine
-                result = connection.execute(func_insert_stmt.on_conflict_do_update(constraint=stations_table.primary_key, set_=stations_data), stations_data)
+                result = connection.execute(db.insert(stations_table), stations_data)
+
                 pk = result.inserted_primary_key[0]
-                print(result)
 
                 regular_price_data = create_price_data(record, pk, 'regular')
                 diesel_price_data = create_price_data(record, pk, 'diesel')
                 premium_price_data = create_price_data(record, pk, 'premium')
 
                 if regular_price_data:
-                    connection.execute(func_prices_insert_stmt.on_conflict_do_update(constraint=prices_table.primary_key, set_=regular_price_data), regular_price_data)
+                    connection.execute(db.insert(prices_table), regular_price_data)
                 if diesel_price_data:
-                    connection.execute(func_prices_insert_stmt.on_conflict_do_update(constraint=prices_table.primary_key, set_=diesel_price_data), diesel_price_data)
+                    connection.execute(db.insert(prices_table), diesel_price_data)
                 if premium_price_data:
-                    connection.execute(func_prices_insert_stmt.on_conflict_do_update(constraint=prices_table.primary_key, set_=premium_price_data), premium_price_data)
+                    connection.execute(db.insert(prices_table), premium_price_data)
             except Exception:
                 print('A problem ocurred when inserting records')
                 traceback.print_exc()
